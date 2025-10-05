@@ -64,7 +64,10 @@ const ItemType = {
     IRON_PICKAXE: 60,
     DIAMOND_PICKAXE: 61,
     WHEAT: 62,
-    BREAD: 63
+    BREAD: 63,
+    BED: 64,
+    DIAMOND_ORE: 65,
+    WOOL: 66
 };
 
 // アイテム情報の拡張
@@ -139,7 +142,10 @@ const itemInfo = {
     [ItemType.IRON_PICKAXE]: { name: '鉄のツルハシ', color: '#C0C0C0', drops: ItemType.IRON_PICKAXE, icon: '⛏️' },
     [ItemType.DIAMOND_PICKAXE]: { name: 'ダイヤのツルハシ', color: '#00CED1', drops: ItemType.DIAMOND_PICKAXE, icon: '⛏️' },
     [ItemType.WHEAT]: { name: '小麦', color: '#F4A460', drops: ItemType.WHEAT, icon: '🌾' },
-    [ItemType.BREAD]: { name: 'パン', color: '#D2691E', drops: ItemType.BREAD, icon: '🍞' }
+    [ItemType.BREAD]: { name: 'パン', color: '#D2691E', drops: ItemType.BREAD, icon: '🍞' },
+    [ItemType.BED]: { name: 'ベッド', color: '#FF0000', drops: ItemType.BED, icon: '🛏️' },
+    [ItemType.DIAMOND_ORE]: { name: 'ダイヤ鉱石', color: '#00CED1', drops: ItemType.DIAMOND, icon: '💎' },
+    [ItemType.WOOL]: { name: '羊毛', color: '#F5F5DC', drops: ItemType.WOOL, icon: '🐑' }
 };
 
 // クラフトレシピ
@@ -425,6 +431,28 @@ class CraftingRecipes {
                 [null, null, null]
             ],
             result: { item: ItemType.TNT, count: 1 },
+            type: 'table'
+        });
+
+        // ベッドレシピ（羊毛×3 + 木材×3）
+        this.addRecipe({
+            pattern: [
+                [ItemType.WOOL, ItemType.WOOL, ItemType.WOOL],
+                [ItemType.PLANKS, ItemType.PLANKS, ItemType.PLANKS],
+                [null, null, null]
+            ],
+            result: { item: ItemType.BED, count: 1 },
+            type: 'table'
+        });
+
+        // 簡単なベッドレシピ（葉×3 + 木材×3）
+        this.addRecipe({
+            pattern: [
+                [ItemType.LEAVES, ItemType.LEAVES, ItemType.LEAVES],
+                [ItemType.PLANKS, ItemType.PLANKS, ItemType.PLANKS],
+                [null, null, null]
+            ],
+            result: { item: ItemType.BED, count: 1 },
             type: 'table'
         });
 

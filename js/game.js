@@ -114,6 +114,10 @@ class World {
                     else if (depth > 0.6 && depth < 0.75 && Math.random() < 0.01) {
                         this.blocks[x][y] = window.ItemType ? window.ItemType.GOLD_ORE : BlockType.STONE;
                     }
+                    // ダイヤモンド鉱石（深層・レア）
+                    else if (depth > 0.65 && depth < 0.8 && Math.random() < 0.008) {
+                        this.blocks[x][y] = window.ItemType ? window.ItemType.DIAMOND_ORE : BlockType.STONE;
+                    }
                     // エメラルド（最深層・レア）
                     else if (depth > 0.7 && Math.random() < 0.005) {
                         this.blocks[x][y] = window.ItemType ? window.ItemType.EMERALD : BlockType.STONE;
@@ -260,11 +264,25 @@ class Player {
     }
 
     update(world, deltaTime) {
-        // 重力
-        this.vy += GRAVITY;
+        // 水中チェック
+        const blockX = Math.floor((this.x + this.width/2) / BLOCK_SIZE);
+        const blockY = Math.floor((this.y + this.height/2) / BLOCK_SIZE);
+        const inWater = world.getBlock(blockX, blockY) === window.ItemType?.WATER;
 
-        // 速度制限
-        this.vy = Math.min(this.vy, 15);
+        if (inWater) {
+            // 水中での動き
+            this.vy += GRAVITY * 0.3; // 重力を弱める
+            this.vy = Math.min(this.vy, 3); // 落下速度制限
+
+            // 泳ぐ（ジャンプキーで上昇）
+            if (this.isSwimming) {
+                this.vy = -4;
+            }
+        } else {
+            // 通常の重力
+            this.vy += GRAVITY;
+            this.vy = Math.min(this.vy, 15);
+        }
 
         // X方向の移動と衝突判定
         const newX = this.x + this.vx;
@@ -287,7 +305,11 @@ class Player {
         }
 
         // 摩擦
-        this.vx *= 0.8;
+        if (inWater) {
+            this.vx *= 0.9; // 水中では摩擦が大きい
+        } else {
+            this.vx *= 0.8;
+        }
 
         // 無敵時間の更新
         if (this.invulnerable && deltaTime) {
@@ -320,7 +342,16 @@ class Player {
     }
 
     jump() {
-        if (this.onGround) {
+        // 水中チェック
+        const blockX = Math.floor((this.x + this.width/2) / BLOCK_SIZE);
+        const blockY = Math.floor((this.y + this.height/2) / BLOCK_SIZE);
+        const inWater = world.getBlock(blockX, blockY) === window.ItemType?.WATER;
+
+        if (inWater) {
+            // 水中では常に泳げる
+            this.isSwimming = true;
+            this.vy = -4;
+        } else if (this.onGround) {
             this.vy = JUMP_FORCE;
         }
     }
@@ -747,6 +778,17 @@ function handleTouchStart(e) {
         } else if (currentBlock === window.ItemType?.TNT) {
             // TNTを爆破
             explodeTNT(worldX, worldY);
+        } else if (currentBlock === window.ItemType?.BED) {
+            // ベッドで寝る（夜のみ）
+            if (dayNightCycle && dayNightCycle.isNight()) {
+                sleepInBed();
+            } else {
+                const msg = document.createElement('div');
+                msg.textContent = '☀️ 夜にしか寝られません！';
+                msg.style.cssText = 'position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(255, 200, 0, 0.9); color: #333; padding: 15px; border-radius: 10px; font-size: 18px; z-index: 1000;';
+                document.body.appendChild(msg);
+                setTimeout(() => msg.remove(), 2000);
+            }
         } else if (currentBlock === BlockType.CRAFTING_TABLE) {
             // 作業台を使う
             if (window.craftingUI) {
@@ -1157,6 +1199,29 @@ function gameLoop() {
                         ctx.arc(blockX + 22, blockY + 22, 3, 0, Math.PI * 2);
                         ctx.arc(blockX + 16, blockY + 16, 3, 0, Math.PI * 2);
                         ctx.fill();
+                    } else if (window.ItemType && block === window.ItemType.DIAMOND_ORE) { // ダイヤ鉱石
+                        ctx.fillStyle = '#696969';
+                        ctx.fillRect(blockX, blockY, BLOCK_SIZE, BLOCK_SIZE);
+                        ctx.fillStyle = '#00CED1';
+                        ctx.beginPath();
+                        ctx.moveTo(blockX + 16, blockY + 8);
+                        ctx.lineTo(blockX + 20, blockY + 12);
+                        ctx.lineTo(blockX + 16, blockY + 16);
+                        ctx.lineTo(blockX + 12, blockY + 12);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.fillStyle = '#B0FFFF';
+                        ctx.fillRect(blockX + 15, blockY + 10, 2, 2);
+                    } else if (window.ItemType && block === window.ItemType.BED) { // ベッド
+                        // ベッドの枠
+                        ctx.fillStyle = '#8B4513';
+                        ctx.fillRect(blockX, blockY + 16, BLOCK_SIZE, 8);
+                        // 枕
+                        ctx.fillStyle = '#FFF';
+                        ctx.fillRect(blockX + 2, blockY + 8, 8, 8);
+                        // マットレス
+                        ctx.fillStyle = '#FF4444';
+                        ctx.fillRect(blockX + 10, blockY + 8, 20, 8);
                     } else if (window.ItemType && block === window.ItemType.EMERALD) { // エメラルド
                         ctx.fillStyle = '#50C878';
                         ctx.beginPath();
@@ -1280,6 +1345,48 @@ function gameLoop() {
     }
 
     requestAnimationFrame(gameLoop);
+}
+
+// ========== ベッドで寝る機能 ==========
+function sleepInBed() {
+    // 寝るエフェクト
+    const sleepOverlay = document.createElement('div');
+    sleepOverlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; opacity: 0; z-index: 999; transition: opacity 2s;';
+    document.body.appendChild(sleepOverlay);
+
+    // メッセージ表示
+    const msg = document.createElement('div');
+    msg.textContent = '😴 おやすみなさい...';
+    msg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 36px; z-index: 1000; opacity: 0; transition: opacity 1s;';
+    document.body.appendChild(msg);
+
+    // フェードイン
+    setTimeout(() => {
+        sleepOverlay.style.opacity = '1';
+        msg.style.opacity = '1';
+    }, 100);
+
+    // 朝にする
+    setTimeout(() => {
+        // 時間を朝6時にセット
+        if (dayNightCycle) {
+            dayNightCycle.currentTime = 6 * 60; // 6:00 AM
+        }
+
+        // 体力回復
+        player.health = player.maxHealth;
+
+        // フェードアウト
+        msg.textContent = '☀️ おはよう！';
+        setTimeout(() => {
+            sleepOverlay.style.opacity = '0';
+            msg.style.opacity = '0';
+            setTimeout(() => {
+                sleepOverlay.remove();
+                msg.remove();
+            }, 2000);
+        }, 1000);
+    }, 3000);
 }
 
 // ========== TNT爆発機能 ==========
