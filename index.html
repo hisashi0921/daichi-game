@@ -312,6 +312,7 @@
     </div>
 
     <button id="craftBtn">クラフト</button>
+    <button id="recipeBtn" style="position: fixed; top: 110px; right: 10px; width: 80px; height: 40px; background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); border: 2px solid #333; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer;">📖 レシピ</button>
 
     <div id="craftUI">
         <h2 class="craft-title">クラフト</h2>
@@ -331,6 +332,23 @@
             <button class="craft-btn" id="clearBtn">クリア</button>
             <button class="craft-btn" id="closeBtn">とじる</button>
         </div>
+    </div>
+
+    <!-- レシピブックUI -->
+    <div id="recipeBookUI" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20, 20, 20, 0.95); border: 3px solid #8B4513; border-radius: 10px; padding: 20px; display: none; z-index: 100; width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
+        <h2 style="color: #FFD700; text-align: center; margin-bottom: 15px;">📖 レシピブック</h2>
+        <div id="recipeCategories" style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap;">
+            <button class="recipe-category-btn" data-category="all" style="padding: 8px 16px; background: #4CAF50; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">すべて</button>
+            <button class="recipe-category-btn" data-category="tools" style="padding: 8px 16px; background: #2196F3; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">道具</button>
+            <button class="recipe-category-btn" data-category="weapons" style="padding: 8px 16px; background: #FF5722; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">武器</button>
+            <button class="recipe-category-btn" data-category="armor" style="padding: 8px 16px; background: #9C27B0; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">防具</button>
+            <button class="recipe-category-btn" data-category="blocks" style="padding: 8px 16px; background: #795548; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">ブロック</button>
+            <button class="recipe-category-btn" data-category="food" style="padding: 8px 16px; background: #FFC107; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">食料</button>
+        </div>
+        <div id="recipeList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+            <!-- レシピがここに動的に表示される -->
+        </div>
+        <button id="closeRecipeBtn" style="margin-top: 20px; padding: 10px 20px; background: #f44336; border: 2px solid #333; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; width: 100%;">とじる</button>
     </div>
 
     <div id="controls">

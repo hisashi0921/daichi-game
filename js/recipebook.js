@@ -433,49 +433,125 @@ class RecipeBook {
         };
         pagination.appendChild(nextBtn);
     }
+
+    // 新しい詳細レシピ表示メソッド
+    displayDetailedRecipes() {
+        const recipeList = document.getElementById('recipeList');
+        if (!recipeList) return;
+
+        recipeList.innerHTML = '';
+
+        // 詳細レシピデータ
+        const detailedRecipes = [
+            // === 基本材料 ===
+            { name: '木材', icon: '🪵', materials: '原木×1', result: '木材×4', category: 'blocks' },
+            { name: '棒', icon: '｜', materials: '木材×2（縦）', result: '棒×4', category: 'tools' },
+            { name: '作業台', icon: '🔨', materials: '木材×4（2×2）', result: '3×3クラフト可能', category: 'blocks' },
+
+            // === ツルハシ ===
+            { name: '木のツルハシ', icon: '⛏️', materials: '木材×3（上段）+棒×2（縦）', result: '石を掘れる', category: 'tools' },
+            { name: '石のツルハシ', icon: '⛏️', materials: '丸石×3（上段）+棒×2（縦）', result: '鉄を掘れる', category: 'tools' },
+            { name: '鉄のツルハシ', icon: '⛏️', materials: '鉄×3（上段）+棒×2（縦）', result: '金・ダイヤを掘れる', category: 'tools' },
+            { name: 'ダイヤのツルハシ', icon: '💎', materials: 'ダイヤ×3（上段）+棒×2（縦）', result: '最速で掘れる', category: 'tools' },
+
+            // === 剣 ===
+            { name: '木の剣', icon: '🗡️', materials: '木材×2（縦）+棒×1', result: '攻撃力+2', category: 'weapons' },
+            { name: '石の剣', icon: '⚔️', materials: '丸石×2（縦）+棒×1', result: '攻撃力+3', category: 'weapons' },
+            { name: '鉄の剣', icon: '⚔️', materials: '鉄×2（縦）+棒×1', result: '攻撃力+4', category: 'weapons' },
+            { name: 'ダイヤの剣', icon: '💎', materials: 'ダイヤ×2（縦）+棒×1', result: '攻撃力+5', category: 'weapons' },
+
+            // === 斧 ===
+            { name: '木の斧', icon: '🪓', materials: '木材×3（L字）+棒×2', result: '木を速く切る', category: 'tools' },
+            { name: '石の斧', icon: '🪓', materials: '丸石×3（L字）+棒×2', result: 'より速く切る', category: 'tools' },
+
+            // === 防具 ===
+            { name: '革のヘルメット', icon: '🪖', materials: '革×5（逆U字）', result: '防御力+1', category: 'armor' },
+            { name: '革のよろい', icon: '👕', materials: '革×8（胴体型）', result: '防御力+3', category: 'armor' },
+            { name: '革のズボン', icon: '👖', materials: '革×7（ズボン型）', result: '防御力+2', category: 'armor' },
+            { name: '革のブーツ', icon: '👢', materials: '革×4（ブーツ型）', result: '防御力+1', category: 'armor' },
+
+            { name: '鉄のヘルメット', icon: '⛑️', materials: '鉄×5（逆U字）', result: '防御力+2', category: 'armor' },
+            { name: '鉄のよろい', icon: '🦺', materials: '鉄×8（胴体型）', result: '防御力+5', category: 'armor' },
+
+            // === 特殊ブロック ===
+            { name: 'チェスト', icon: '📦', materials: '木材×8（中空の□）', result: '27アイテム保管', category: 'blocks' },
+            { name: 'かまど', icon: '🔥', materials: '丸石×8（中空の□）', result: '精錬できる', category: 'blocks' },
+            { name: 'たいまつ', icon: '🔦', materials: '石炭×1+棒×1（縦）', result: '明かり×4本', category: 'blocks' },
+
+            // === 食料 ===
+            { name: 'パン', icon: '🍞', materials: '小麦×3（横一列）', result: '体力+3', category: 'food' },
+            { name: 'ケーキ', icon: '🍰', materials: '小麦×9（3×3）', result: '特別なごちそう！', category: 'food' },
+
+            // === 特殊アイテム ===
+            { name: '虹色ブロック', icon: '🌈', materials: '金+ダイヤ+エメラルド（3×3模様）', result: 'キラキラ光る！', category: 'blocks' },
+            { name: 'にっこりブロック', icon: '😊', materials: '金×8+ダイヤ×1（中央）', result: 'にっこり！', category: 'blocks' }
+        ];
+
+        // カテゴリーごとにグループ化
+        const categories = {
+            'tools': '🔧 道具',
+            'weapons': '⚔️ 武器',
+            'armor': '🛡️ 防具',
+            'blocks': '🧱 ブロック',
+            'food': '🍖 食料'
+        };
+
+        const selectedCategory = document.querySelector('.recipe-category-btn[style*="opacity: 1"]')?.dataset?.category || 'all';
+
+        const filteredRecipes = selectedCategory === 'all'
+            ? detailedRecipes
+            : detailedRecipes.filter(r => r.category === selectedCategory);
+
+        filteredRecipes.forEach(recipe => {
+            const card = document.createElement('div');
+            card.style.cssText = `
+                background: rgba(40, 40, 40, 0.9);
+                border: 2px solid #555;
+                border-radius: 8px;
+                padding: 12px;
+                cursor: pointer;
+                transition: all 0.3s;
+            `;
+
+            card.onmouseover = () => {
+                card.style.background = 'rgba(60, 60, 60, 0.95)';
+                card.style.borderColor = '#FFD700';
+                card.style.transform = 'scale(1.02)';
+            };
+
+            card.onmouseout = () => {
+                card.style.background = 'rgba(40, 40, 40, 0.9)';
+                card.style.borderColor = '#555';
+                card.style.transform = 'scale(1)';
+            };
+
+            card.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <span style="font-size: 24px;">${recipe.icon}</span>
+                    <strong style="color: #FFD700; font-size: 14px;">${recipe.name}</strong>
+                </div>
+                <div style="color: #AAA; font-size: 11px; margin-bottom: 5px;">📦 材料: ${recipe.materials}</div>
+                <div style="color: #4CAF50; font-size: 11px;">✨ ${recipe.result}</div>
+            `;
+
+            recipeList.appendChild(card);
+        });
+    }
 }
 
-// レシピブックボタンを追加
-function addRecipeBookButton() {
-    const button = document.createElement('button');
-    button.id = 'recipeBookBtn';
-    button.textContent = '📖 レシピ';
-    button.style.cssText = `
-        position: fixed;
-        top: 110px;
-        right: 10px;
-        width: 100px;
-        height: 40px;
-        background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
-        border: 2px solid #654321;
-        border-radius: 10px;
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        z-index: 100;
-    `;
-
-    button.onmouseover = () => {
-        button.style.transform = 'scale(1.05)';
-    };
-
-    button.onmouseout = () => {
-        button.style.transform = 'scale(1)';
-    };
-
-    button.onclick = () => {
-        if (window.recipeBook) {
-            window.recipeBook.open();
-        }
-    };
-
-    document.body.appendChild(button);
-}
-
-// 初期化
+// 初期化（レシピボタンはHTMLに配置済み）
 window.addEventListener('load', () => {
     window.recipeBook = new RecipeBook();
-    addRecipeBookButton();
+
+    // レシピボタンの設定（新しいUIを使用）
+    const recipeBtn = document.getElementById('recipeBtn');
+    if (recipeBtn) {
+        recipeBtn.onclick = () => {
+            const recipeBookUI = document.getElementById('recipeBookUI');
+            if (recipeBookUI) {
+                recipeBookUI.style.display = 'block';
+                window.recipeBook.displayDetailedRecipes();
+            }
+        };
+    }
 });

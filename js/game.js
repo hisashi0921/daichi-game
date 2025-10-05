@@ -1243,6 +1243,10 @@ function saveGame() {
             equippedWeapon: player.equippedWeapon,
             equippedArmor: player.equippedArmor
         },
+        camera: {
+            x: camera.x,
+            y: camera.y
+        },
         inventory: {
             items: inventory.items,
             selectedSlot: inventory.selectedSlot
@@ -1293,6 +1297,15 @@ function loadGame() {
 
     // 昼夜サイクルの復元
     dayNightCycle.currentTime = saveData.dayNight.currentTime;
+
+    // カメラ位置の復元
+    if (saveData.camera) {
+        camera.x = saveData.camera.x;
+        camera.y = saveData.camera.y;
+    } else {
+        // 古いセーブデータの場合、プレイヤーを中心にカメラを設定
+        camera.follow(player);
+    }
 
     // 装備表示の更新
     updateEquipmentDisplay();
