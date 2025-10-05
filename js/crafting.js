@@ -55,7 +55,16 @@ const ItemType = {
     STRING: 52,
     LEATHER: 53,
     IRON_INGOT: 54,
-    GOLD_INGOT: 55
+    GOLD_INGOT: 55,
+    // 追加アイテム
+    WATER: 56,
+    TNT: 57,
+    GUNPOWDER: 58,
+    DIAMOND: 59,
+    IRON_PICKAXE: 60,
+    DIAMOND_PICKAXE: 61,
+    WHEAT: 62,
+    BREAD: 63
 };
 
 // アイテム情報の拡張
@@ -121,7 +130,16 @@ const itemInfo = {
     [ItemType.STRING]: { name: '糸', color: '#F5F5DC', drops: ItemType.STRING },
     [ItemType.LEATHER]: { name: '革', color: '#8B4513', drops: ItemType.LEATHER },
     [ItemType.IRON_INGOT]: { name: '鉄インゴット', color: '#C0C0C0', drops: ItemType.IRON_INGOT },
-    [ItemType.GOLD_INGOT]: { name: '金インゴット', color: '#FFD700', drops: ItemType.GOLD_INGOT }
+    [ItemType.GOLD_INGOT]: { name: '金インゴット', color: '#FFD700', drops: ItemType.GOLD_INGOT },
+    // 追加アイテム
+    [ItemType.WATER]: { name: '水', color: '#4682B4', drops: null, icon: '💧' },
+    [ItemType.TNT]: { name: 'TNT', color: '#FF0000', drops: ItemType.TNT, icon: '🧨' },
+    [ItemType.GUNPOWDER]: { name: '火薬', color: '#696969', drops: ItemType.GUNPOWDER, icon: '💥' },
+    [ItemType.DIAMOND]: { name: 'ダイヤモンド', color: '#00CED1', drops: ItemType.DIAMOND, icon: '💎' },
+    [ItemType.IRON_PICKAXE]: { name: '鉄のツルハシ', color: '#C0C0C0', drops: ItemType.IRON_PICKAXE, icon: '⛏️' },
+    [ItemType.DIAMOND_PICKAXE]: { name: 'ダイヤのツルハシ', color: '#00CED1', drops: ItemType.DIAMOND_PICKAXE, icon: '⛏️' },
+    [ItemType.WHEAT]: { name: '小麦', color: '#F4A460', drops: ItemType.WHEAT, icon: '🌾' },
+    [ItemType.BREAD]: { name: 'パン', color: '#D2691E', drops: ItemType.BREAD, icon: '🍞' }
 };
 
 // クラフトレシピ
@@ -385,6 +403,28 @@ class CraftingRecipes {
                 [null, null, null]
             ],
             result: { item: 25, count: 1 }, // にじいろブロック
+            type: 'table'
+        });
+
+        // TNTレシピ: 火薬×5 + 砂×4
+        this.addRecipe({
+            pattern: [
+                [ItemType.GUNPOWDER, ItemType.SAND, ItemType.GUNPOWDER],
+                [ItemType.SAND, ItemType.GUNPOWDER, ItemType.SAND],
+                [ItemType.GUNPOWDER, ItemType.SAND, ItemType.GUNPOWDER]
+            ],
+            result: { item: ItemType.TNT, count: 1 },
+            type: 'table'
+        });
+
+        // 簡単なTNTレシピ（石炭×3 + 砂×2）
+        this.addRecipe({
+            pattern: [
+                [ItemType.SAND, ItemType.COAL, ItemType.SAND],
+                [ItemType.COAL, ItemType.COAL, null],
+                [null, null, null]
+            ],
+            result: { item: ItemType.TNT, count: 1 },
             type: 'table'
         });
 

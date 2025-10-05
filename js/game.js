@@ -132,8 +132,33 @@ class World {
                 }
             }
 
+            // 川の生成
+            if (Math.sin(x * 0.03) > 0.7 && Math.random() < 0.8) {
+                // 川底を作る
+                for (let dy = 0; dy < 4; dy++) {
+                    if (terrainHeight + dy < this.height) {
+                        if (dy < 2) {
+                            // 水ブロック
+                            this.blocks[x][terrainHeight + dy] = window.ItemType ? window.ItemType.WATER : BlockType.AIR;
+                        } else {
+                            // 川底は砂
+                            this.blocks[x][terrainHeight + dy] = BlockType.SAND;
+                        }
+                    }
+                }
+                // 川の両岸も砂にする
+                if (x > 0 && x < this.width - 1) {
+                    for (let dx = -2; dx <= 2; dx++) {
+                        if (x + dx >= 0 && x + dx < this.width) {
+                            if (this.blocks[x + dx][terrainHeight + 2] === BlockType.DIRT) {
+                                this.blocks[x + dx][terrainHeight + 2] = BlockType.SAND;
+                            }
+                        }
+                    }
+                }
+            }
             // 砂地の生成（川や湖の近く風）
-            if (Math.sin(x * 0.05) > 0.6) {
+            else if (Math.sin(x * 0.05) > 0.6) {
                 for (let dy = 0; dy < 3; dy++) {
                     if (terrainHeight + dy < this.height) {
                         if (this.blocks[x][terrainHeight + dy] === BlockType.GRASS ||
@@ -719,6 +744,9 @@ function handleTouchStart(e) {
                     }
                 }
             }
+        } else if (currentBlock === window.ItemType?.TNT) {
+            // TNTを爆破
+            explodeTNT(worldX, worldY);
         } else if (currentBlock === BlockType.CRAFTING_TABLE) {
             // 作業台を使う
             if (window.craftingUI) {
@@ -1066,6 +1094,33 @@ function gameLoop() {
                         ctx.closePath();
                         ctx.fill();
                         ctx.stroke();
+                    } else if (block === window.ItemType?.WATER) { // 水
+                        // 半透明の青色
+                        ctx.fillStyle = 'rgba(70, 130, 180, 0.6)';
+                        ctx.fillRect(blockX, blockY, BLOCK_SIZE, BLOCK_SIZE);
+                        // 波のアニメーション
+                        ctx.strokeStyle = 'rgba(100, 150, 200, 0.4)';
+                        ctx.beginPath();
+                        const waveOffset = (Date.now() / 500 + x * 0.5) % (Math.PI * 2);
+                        ctx.moveTo(blockX, blockY + BLOCK_SIZE/2 + Math.sin(waveOffset) * 3);
+                        ctx.lineTo(blockX + BLOCK_SIZE, blockY + BLOCK_SIZE/2 + Math.sin(waveOffset + 1) * 3);
+                        ctx.stroke();
+                    } else if (block === window.ItemType?.TNT) { // TNT
+                        // 赤いブロック
+                        ctx.fillStyle = '#C41E3A';
+                        ctx.fillRect(blockX, blockY, BLOCK_SIZE, BLOCK_SIZE);
+                        // TNTの文字
+                        ctx.fillStyle = '#FFF';
+                        ctx.font = 'bold 10px Arial';
+                        ctx.fillText('TNT', blockX + 4, blockY + 20);
+                        // 導火線
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(blockX + 16, blockY);
+                        ctx.lineTo(blockX + 16, blockY + 8);
+                        ctx.stroke();
+                        ctx.lineWidth = 1;
                     } else if (block === BlockType.TORCH) { // たいまつ
                         ctx.fillStyle = '#8B4513';
                         ctx.fillRect(blockX + 14, blockY + 16, 4, 12);
@@ -1225,6 +1280,93 @@ function gameLoop() {
     }
 
     requestAnimationFrame(gameLoop);
+}
+
+// ========== TNT爆発機能 ==========
+function explodeTNT(x, y) {
+    // 爆発エフェクト（視覚的）
+    const explodeEffect = () => {
+        const originalFillStyle = ctx.fillStyle;
+
+        // 爆発の光
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, ${200 - i * 40}, 0, ${0.8 - i * 0.15})`;
+                ctx.beginPath();
+                ctx.arc(
+                    x * BLOCK_SIZE - camera.x + BLOCK_SIZE/2,
+                    y * BLOCK_SIZE - camera.y + BLOCK_SIZE/2,
+                    (i + 1) * BLOCK_SIZE * 2,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+                ctx.restore();
+            }, i * 50);
+        }
+    };
+
+    // 爆発音（簡易）
+    const msg = document.createElement('div');
+    msg.textContent = '💥 ドカーン！';
+    msg.style.cssText = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                         background: rgba(255, 100, 0, 0.9); color: white; padding: 20px;
+                         border-radius: 10px; font-size: 36px; z-index: 1000; font-weight: bold;`;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 1000);
+
+    // 爆発範囲のブロック破壊
+    const explosionRadius = 4; // 爆発半径
+
+    for (let dx = -explosionRadius; dx <= explosionRadius; dx++) {
+        for (let dy = -explosionRadius; dy <= explosionRadius; dy++) {
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance <= explosionRadius) {
+                const bx = x + dx;
+                const by = y + dy;
+
+                const block = world.getBlock(bx, by);
+                // 岩盤以外のブロックを破壊
+                if (block !== BlockType.AIR && block !== undefined) {
+                    // 爆発の中心に近いほど破壊確率が高い
+                    const destroyChance = 1 - (distance / explosionRadius) * 0.3;
+                    if (Math.random() < destroyChance) {
+                        // ブロックを破壊してアイテムドロップ
+                        const drops = world.breakBlock(bx, by);
+                        // TNT自体と水はドロップしない
+                        if (drops !== null && drops !== window.ItemType?.TNT && drops !== window.ItemType?.WATER) {
+                            // ランダムにアイテムを散らばらせる（50%の確率でドロップ）
+                            if (Math.random() < 0.5) {
+                                inventory.addItem(drops);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // プレイヤーへのダメージ
+    const playerBlockX = Math.floor(player.x / BLOCK_SIZE);
+    const playerBlockY = Math.floor(player.y / BLOCK_SIZE);
+    const playerDistance = Math.sqrt(
+        Math.pow(x - playerBlockX, 2) +
+        Math.pow(y - playerBlockY, 2)
+    );
+
+    if (playerDistance <= explosionRadius) {
+        const damage = Math.max(1, Math.floor((explosionRadius - playerDistance) * 3));
+        player.takeDamage(damage);
+
+        // ノックバック
+        const knockbackX = (playerBlockX - x) * 2;
+        const knockbackY = -10; // 上方向に吹き飛ばす
+        player.vx = knockbackX;
+        player.vy = knockbackY;
+    }
+
+    explodeEffect();
 }
 
 // ========== セーブ/ロード機能 ==========
