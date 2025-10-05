@@ -312,7 +312,7 @@
     </div>
 
     <button id="craftBtn">クラフト</button>
-    <button id="recipeBtn" style="position: fixed; top: 110px; right: 10px; width: 80px; height: 40px; background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); border: 2px solid #333; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer;">📖 レシピ</button>
+    <button id="recipeBtn" onclick="document.getElementById('recipeBookUI').style.display='block'; if(window.recipeBook && window.recipeBook.displayDetailedRecipes) window.recipeBook.displayDetailedRecipes();" style="position: fixed; top: 110px; right: 10px; width: 80px; height: 40px; background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); border: 2px solid #333; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer;">📖 レシピ</button>
 
     <div id="craftUI">
         <h2 class="craft-title">クラフト</h2>
@@ -348,7 +348,7 @@
         <div id="recipeList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
             <!-- レシピがここに動的に表示される -->
         </div>
-        <button id="closeRecipeBtn" style="margin-top: 20px; padding: 10px 20px; background: #f44336; border: 2px solid #333; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; width: 100%;">とじる</button>
+        <button id="closeRecipeBtn" onclick="document.getElementById('recipeBookUI').style.display='none'" style="margin-top: 20px; padding: 10px 20px; background: #f44336; border: 2px solid #333; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; width: 100%;">とじる</button>
     </div>
 
     <div id="controls">
