@@ -1157,17 +1157,220 @@ function gameLoop() {
     );
     ctx.stroke();
 
-    // 夜の暗さオーバーレイ
+    // 夜の暗さオーバーレイとたいまつの明かり効果
     if (dayNightCycle && dayNightCycle.getDarkness) {
         const darkness = dayNightCycle.getDarkness();
         if (darkness > 0) {
-            ctx.fillStyle = `rgba(0, 0, 20, ${darkness})`;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // たいまつの位置を収集
+            const torches = [];
+            for (let x = startX; x <= endX; x++) {
+                for (let y = startY; y <= endY; y++) {
+                    const block = world.getBlock(x, y);
+                    if (block === window.ItemType.TORCH) {
+                        torches.push({ x: x * BLOCK_SIZE - camera.x + BLOCK_SIZE / 2, y: y * BLOCK_SIZE - camera.y + BLOCK_SIZE / 2 });
+                    }
+                }
+            }
+
+            // プレイヤーがたいまつを持っているか確認
+            const holdingTorch = inventory.getSelectedItem() === window.ItemType.TORCH;
+            if (holdingTorch) {
+                torches.push({
+                    x: player.x + player.width / 2 - camera.x,
+                    y: player.y + player.height / 2 - camera.y
+                });
+            }
+
+            // 暗さを描画（たいまつの明かり効果付き）
+            if (torches.length > 0) {
+                // グラデーションマスクを作成
+                const offCanvas = document.createElement('canvas');
+                offCanvas.width = canvas.width;
+                offCanvas.height = canvas.height;
+                const offCtx = offCanvas.getContext('2d');
+
+                // 全体を暗くする
+                offCtx.fillStyle = `rgba(0, 0, 20, ${darkness})`;
+                offCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // たいまつの明かりを切り抜く
+                offCtx.globalCompositeOperation = 'destination-out';
+                for (const torch of torches) {
+                    const gradient = offCtx.createRadialGradient(torch.x, torch.y, 0, torch.x, torch.y, 150);
+                    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+                    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    offCtx.fillStyle = gradient;
+                    offCtx.fillRect(torch.x - 150, torch.y - 150, 300, 300);
+                }
+
+                // メインキャンバスに描画
+                ctx.drawImage(offCanvas, 0, 0);
+
+                // たいまつの光の効果を追加
+                for (const torch of torches) {
+                    const gradient = ctx.createRadialGradient(torch.x, torch.y, 0, torch.x, torch.y, 100);
+                    gradient.addColorStop(0, 'rgba(255, 200, 50, 0.3)');
+                    gradient.addColorStop(0.5, 'rgba(255, 150, 0, 0.1)');
+                    gradient.addColorStop(1, 'rgba(255, 100, 0, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(torch.x - 100, torch.y - 100, 200, 200);
+                }
+            } else {
+                // たいまつがない場合は通常の暗さ
+                ctx.fillStyle = `rgba(0, 0, 20, ${darkness})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
         }
     }
 
     requestAnimationFrame(gameLoop);
 }
+
+// ========== セーブ/ロード機能 ==========
+function saveGame() {
+    const saveData = {
+        version: '1.0',
+        timestamp: Date.now(),
+        world: {
+            blocks: world.blocks
+        },
+        player: {
+            x: player.x,
+            y: player.y,
+            health: player.health,
+            maxHealth: player.maxHealth,
+            equippedWeapon: player.equippedWeapon,
+            equippedArmor: player.equippedArmor
+        },
+        inventory: {
+            items: inventory.items,
+            selectedSlot: inventory.selectedSlot
+        },
+        dayNight: {
+            currentTime: dayNightCycle.currentTime
+        }
+    };
+
+    localStorage.setItem('craftMasterSave', JSON.stringify(saveData));
+
+    // セーブ成功メッセージ
+    const msg = document.createElement('div');
+    msg.textContent = '💾 セーブしました！';
+    msg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #4CAF50; color: white; padding: 20px; border-radius: 10px; font-size: 24px; z-index: 1000;';
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 2000);
+}
+
+function loadGame() {
+    const saveDataStr = localStorage.getItem('craftMasterSave');
+    if (!saveDataStr) {
+        const msg = document.createElement('div');
+        msg.textContent = '❌ セーブデータがありません';
+        msg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #f44336; color: white; padding: 20px; border-radius: 10px; font-size: 24px; z-index: 1000;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 2000);
+        return;
+    }
+
+    const saveData = JSON.parse(saveDataStr);
+
+    // ワールドデータの復元
+    world.blocks = saveData.world.blocks;
+
+    // プレイヤーデータの復元
+    player.x = saveData.player.x;
+    player.y = saveData.player.y;
+    player.health = saveData.player.health;
+    player.maxHealth = saveData.player.maxHealth;
+    player.equippedWeapon = saveData.player.equippedWeapon;
+    player.equippedArmor = saveData.player.equippedArmor;
+
+    // インベントリの復元
+    inventory.items = saveData.inventory.items;
+    inventory.selectedSlot = saveData.inventory.selectedSlot;
+    inventory.updateDisplay();
+
+    // 昼夜サイクルの復元
+    dayNightCycle.currentTime = saveData.dayNight.currentTime;
+
+    // 装備表示の更新
+    updateEquipmentDisplay();
+
+    // ロード成功メッセージ
+    const msg = document.createElement('div');
+    msg.textContent = '📂 ロードしました！';
+    msg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2196F3; color: white; padding: 20px; border-radius: 10px; font-size: 24px; z-index: 1000;';
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 2000);
+}
+
+// セーブ/ロードボタンのイベント
+document.getElementById('saveBtn').addEventListener('click', saveGame);
+document.getElementById('loadBtn').addEventListener('click', loadGame);
+
+// ========== スマホ用攻撃ボタン ==========
+document.getElementById('attackBtn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    player.attack(enemyManager);
+});
+document.getElementById('attackBtn').addEventListener('click', () => {
+    player.attack(enemyManager);
+});
+
+// ========== 装備システム ==========
+// プレイヤーに装備関連のプロパティを追加
+player.equippedWeapon = null;
+player.equippedArmor = null;
+
+player.equipWeapon = function(itemType) {
+    this.equippedWeapon = itemType;
+    updateEquipmentDisplay();
+};
+
+player.equipArmor = function(itemType) {
+    this.equippedArmor = itemType;
+    updateEquipmentDisplay();
+};
+
+function updateEquipmentDisplay() {
+    const weaponSlot = document.getElementById('weaponSlot');
+    const armorSlot = document.getElementById('armorSlot');
+
+    if (weaponSlot) {
+        if (player.equippedWeapon) {
+            const info = window.itemInfo[player.equippedWeapon];
+            weaponSlot.textContent = info.icon || '🗡️';
+        } else {
+            weaponSlot.textContent = '🗡️';
+        }
+    }
+
+    if (armorSlot) {
+        if (player.equippedArmor) {
+            const info = window.itemInfo[player.equippedArmor];
+            armorSlot.textContent = info.icon || '🛡️';
+        } else {
+            armorSlot.textContent = '🛡️';
+        }
+    }
+}
+
+// 装備スロットのクリックイベント
+document.getElementById('weaponSlot').addEventListener('click', () => {
+    const selectedItem = inventory.getSelectedItem();
+    if (selectedItem >= window.ItemType.WOODEN_SWORD && selectedItem <= window.ItemType.DIAMOND_SWORD) {
+        player.equipWeapon(selectedItem);
+    }
+});
+
+document.getElementById('armorSlot').addEventListener('click', () => {
+    const selectedItem = inventory.getSelectedItem();
+    if ((selectedItem >= window.ItemType.LEATHER_HELMET && selectedItem <= window.ItemType.LEATHER_BOOTS) ||
+        (selectedItem >= window.ItemType.IRON_HELMET && selectedItem <= window.ItemType.IRON_BOOTS)) {
+        player.equipArmor(selectedItem);
+    }
+});
 
 // ゲーム開始
 gameLoop();
