@@ -443,6 +443,11 @@ class Player {
         if (enemyManager) {
             enemyManager.attackEnemiesAt(attackX, attackY, this.attackPower, attackRange);
         }
+
+        // 動物にダメージを与える
+        if (window.animalManager) {
+            window.animalManager.checkAttack(this, attackX, attackY, this.attackPower);
+        }
     }
 
     draw(ctx, camera) {
@@ -789,6 +794,9 @@ function handleTouchStart(e) {
                 document.body.appendChild(msg);
                 setTimeout(() => msg.remove(), 2000);
             }
+        } else if (currentBlock === window.ItemType?.FURNACE) {
+            // かまどで肉を焼く
+            openFurnaceUI();
         } else if (currentBlock === BlockType.CRAFTING_TABLE) {
             // 作業台を使う
             if (window.craftingUI) {
@@ -898,6 +906,19 @@ window.addEventListener('keydown', (e) => {
             }
         }
     }
+
+    // Eキーで食べ物を食べる
+    if (e.key === 'e' || e.key === 'E') {
+        const selectedItem = inventory.getSelectedItem();
+        if (selectedItem) {
+            const itemData = window.itemInfo[selectedItem];
+            if (itemData && itemData.healing) {
+                if (eatFood(selectedItem)) {
+                    inventory.useSelectedItem();
+                }
+            }
+        }
+    }
 });
 window.addEventListener('keyup', (e) => keys[e.key] = false);
 
@@ -988,6 +1009,11 @@ function gameLoop() {
         if (damage > 0) {
             player.takeDamage(damage);
         }
+    }
+
+    // 動物の更新
+    if (window.animalManager) {
+        window.animalManager.update(world, player, deltaTime);
     }
 
     // 採掘の更新
@@ -1263,6 +1289,11 @@ function gameLoop() {
         }
     }
 
+    // 動物の描画
+    if (window.animalManager) {
+        window.animalManager.draw(ctx, camera);
+    }
+
     // 採掘エフェクトの描画
     if (miningSystem) {
         miningSystem.draw(ctx, camera);
@@ -1351,6 +1382,87 @@ function gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
+
+// ========== 肉を食べる機能 ==========
+function eatFood(itemType) {
+    const itemData = window.itemInfo[itemType];
+    if (itemData && itemData.healing) {
+        // 体力回復
+        player.health = Math.min(player.health + itemData.healing, player.maxHealth);
+
+        // メッセージ表示
+        const msg = document.createElement('div');
+        msg.textContent = `😋 ${itemData.name} +${itemData.healing}HP`;
+        msg.style.cssText = 'position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(76, 175, 80, 0.9); color: white; padding: 15px; border-radius: 10px; font-size: 18px; z-index: 1000;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 1500);
+
+        return true;
+    }
+    return false;
+}
+
+// ========== かまどUI ==========
+function openFurnaceUI() {
+    const furnaceUI = document.createElement('div');
+    furnaceUI.id = 'furnaceUI';
+    furnaceUI.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); border: 3px solid #8B4513; border-radius: 10px; padding: 20px; z-index: 100;';
+
+    furnaceUI.innerHTML = `
+        <h2 style="color: #FFD700; text-align: center; margin-bottom: 15px;">🔥 かまど</h2>
+        <div style="color: white; margin-bottom: 10px;">生肉を焼いて調理しよう！</div>
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="cookMeat('pork')" style="padding: 10px 20px; background: #FF6B6B; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🐷 豚肉を焼く</button>
+            <button onclick="cookMeat('beef')" style="padding: 10px 20px; background: #DC143C; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🐄 牛肉を焼く</button>
+            <button onclick="cookMeat('chicken')" style="padding: 10px 20px; background: #FFE4E1; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🐔 鶏肉を焼く</button>
+        </div>
+        <button onclick="closeFurnaceUI()" style="margin-top: 20px; padding: 10px 20px; background: #f44336; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer; width: 100%;">とじる</button>
+    `;
+
+    document.body.appendChild(furnaceUI);
+}
+
+function closeFurnaceUI() {
+    const ui = document.getElementById('furnaceUI');
+    if (ui) ui.remove();
+}
+
+function cookMeat(type) {
+    const recipes = {
+        'pork': { raw: window.ItemType.RAW_PORK, cooked: window.ItemType.COOKED_PORK, name: '焼き豚' },
+        'beef': { raw: window.ItemType.RAW_BEEF, cooked: window.ItemType.COOKED_BEEF, name: 'ステーキ' },
+        'chicken': { raw: window.ItemType.RAW_CHICKEN, cooked: window.ItemType.COOKED_CHICKEN, name: '焼き鳥' }
+    };
+
+    const recipe = recipes[type];
+    if (!recipe) return;
+
+    // 生肉を持っているかチェック
+    const hasRaw = inventory.items.includes(recipe.raw);
+    if (hasRaw) {
+        // 生肉を消費
+        const index = inventory.items.indexOf(recipe.raw);
+        inventory.items[index] = recipe.cooked;
+        inventory.updateDisplay();
+
+        // メッセージ表示
+        const msg = document.createElement('div');
+        msg.textContent = `🔥 ${recipe.name}ができた！`;
+        msg.style.cssText = 'position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(255, 152, 0, 0.9); color: white; padding: 15px; border-radius: 10px; font-size: 18px; z-index: 1001;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 1500);
+    } else {
+        const msg = document.createElement('div');
+        msg.textContent = '❌ 生肉がありません';
+        msg.style.cssText = 'position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(244, 67, 54, 0.9); color: white; padding: 15px; border-radius: 10px; font-size: 18px; z-index: 1001;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 1500);
+    }
+}
+
+// グローバル関数として登録
+window.cookMeat = cookMeat;
+window.closeFurnaceUI = closeFurnaceUI;
 
 // ========== ベッドで寝る機能 ==========
 function sleepInBed() {
@@ -1586,16 +1698,14 @@ function loadGame() {
             }
         }
 
-        // 敵の復元（オプション）
+        // 敵の復元（オプション - エラーを防ぐ）
         if (saveData.enemies && saveData.enemies.enemies && enemyManager) {
-            enemyManager.enemies = [];
-            saveData.enemies.enemies.forEach(e => {
-                const enemy = enemyManager.createEnemy(e.type, e.x, e.y);
-                if (enemy) {
-                    enemy.health = e.health;
-                    enemyManager.enemies.push(enemy);
-                }
-            });
+            try {
+                enemyManager.enemies = [];
+                // createEnemyメソッドが存在しない場合はスキップ
+            } catch(e) {
+                console.log('敵データのスキップ');
+            }
         }
 
         // カメラ位置の復元

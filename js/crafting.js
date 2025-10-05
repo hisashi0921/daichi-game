@@ -67,7 +67,15 @@ const ItemType = {
     BREAD: 63,
     BED: 64,
     DIAMOND_ORE: 65,
-    WOOL: 66
+    WOOL: 66,
+    // 肉アイテム
+    RAW_PORK: 67,
+    COOKED_PORK: 68,
+    RAW_BEEF: 69,
+    COOKED_BEEF: 70,
+    RAW_CHICKEN: 71,
+    COOKED_CHICKEN: 72,
+    EGG: 73
 };
 
 // アイテム情報の拡張
@@ -145,7 +153,15 @@ const itemInfo = {
     [ItemType.BREAD]: { name: 'パン', color: '#D2691E', drops: ItemType.BREAD, icon: '🍞' },
     [ItemType.BED]: { name: 'ベッド', color: '#FF0000', drops: ItemType.BED, icon: '🛏️' },
     [ItemType.DIAMOND_ORE]: { name: 'ダイヤ鉱石', color: '#00CED1', drops: ItemType.DIAMOND, icon: '💎' },
-    [ItemType.WOOL]: { name: '羊毛', color: '#F5F5DC', drops: ItemType.WOOL, icon: '🐑' }
+    [ItemType.WOOL]: { name: '羊毛', color: '#F5F5DC', drops: ItemType.WOOL, icon: '🐑' },
+    // 肉アイテム
+    [ItemType.RAW_PORK]: { name: '生の豚肉', color: '#FFB6C1', drops: ItemType.RAW_PORK, icon: '🥩', healing: 2 },
+    [ItemType.COOKED_PORK]: { name: '焼き豚', color: '#8B4513', drops: ItemType.COOKED_PORK, icon: '🍖', healing: 6 },
+    [ItemType.RAW_BEEF]: { name: '生の牛肉', color: '#DC143C', drops: ItemType.RAW_BEEF, icon: '🥩', healing: 2 },
+    [ItemType.COOKED_BEEF]: { name: 'ステーキ', color: '#8B4513', drops: ItemType.COOKED_BEEF, icon: '🥩', healing: 8 },
+    [ItemType.RAW_CHICKEN]: { name: '生の鶏肉', color: '#FFE4E1', drops: ItemType.RAW_CHICKEN, icon: '🍗', healing: 1 },
+    [ItemType.COOKED_CHICKEN]: { name: '焼き鳥', color: '#D2691E', drops: ItemType.COOKED_CHICKEN, icon: '🍗', healing: 5 },
+    [ItemType.EGG]: { name: '卵', color: '#FFF8DC', drops: ItemType.EGG, icon: '🥚', healing: 1 }
 };
 
 // クラフトレシピ

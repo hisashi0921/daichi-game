@@ -25,49 +25,55 @@ class BGMManager {
         }
     }
 
-    // シンプルなメロディーを生成
+    // シンプルな環境音を生成
     playDayBGM() {
         if (!this.audioContext) return;
-
         this.stopBGM();
 
-        // 明るい昼のメロディー（C Major）
-        const melody = [
-            {note: 261.63, duration: 0.5}, // C
-            {note: 329.63, duration: 0.5}, // E
-            {note: 392.00, duration: 0.5}, // G
-            {note: 329.63, duration: 0.5}, // E
-            {note: 261.63, duration: 1},   // C
-            {note: 0, duration: 0.5},       // 休符
-            {note: 293.66, duration: 0.5}, // D
-            {note: 329.63, duration: 0.5}, // E
-            {note: 349.23, duration: 0.5}, // F
-            {note: 329.63, duration: 0.5}, // E
-            {note: 293.66, duration: 1},   // D
-        ];
-
-        this.playMelody(melody, 'day');
+        // 昼は鳥の鳴き声風の音
+        this.playAmbientSound(800, 1200, 'day');
     }
 
     playNightBGM() {
         if (!this.audioContext) return;
-
         this.stopBGM();
 
-        // 静かな夜のメロディー（A Minor）
-        const melody = [
-            {note: 220.00, duration: 1},   // A
-            {note: 261.63, duration: 0.5}, // C
-            {note: 329.63, duration: 0.5}, // E
-            {note: 220.00, duration: 1},   // A
-            {note: 0, duration: 0.5},       // 休符
-            {note: 196.00, duration: 1},   // G
-            {note: 261.63, duration: 0.5}, // C
-            {note: 329.63, duration: 0.5}, // E
-            {note: 196.00, duration: 1},   // G
-        ];
+        // 夜はコオロギの音風
+        this.playAmbientSound(400, 450, 'night');
+    }
 
-        this.playMelody(melody, 'night');
+    playAmbientSound(minFreq, maxFreq, type) {
+        const playChirp = () => {
+            if (!this.isPlaying || this.currentBGM !== type) return;
+
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(this.gainNode);
+
+            // ランダムな周波数
+            oscillator.frequency.value = minFreq + Math.random() * (maxFreq - minFreq);
+            oscillator.type = type === 'day' ? 'sine' : 'square';
+
+            const now = this.audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.02, now + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+            oscillator.start(now);
+            oscillator.stop(now + 0.1);
+
+            // 次の音までランダムな間隔
+            const interval = type === 'day' ?
+                2000 + Math.random() * 3000 : // 昼は2-5秒ごと
+                500 + Math.random() * 1000;   // 夜は0.5-1.5秒ごと
+
+            setTimeout(playChirp, interval);
+        };
+
+        playChirp();
+        this.currentBGM = type;
     }
 
     playMelody(melody, type) {
