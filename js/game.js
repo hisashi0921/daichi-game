@@ -1385,5 +1385,28 @@ document.getElementById('armorSlot').addEventListener('click', () => {
     }
 });
 
+// レシピブックのイベントリスナー設定
+document.getElementById('recipeBtn').addEventListener('click', () => {
+    document.getElementById('recipeBookUI').style.display = 'block';
+    if (window.recipeBook && window.recipeBook.displayDetailedRecipes) {
+        window.recipeBook.displayDetailedRecipes();
+    }
+});
+
+document.getElementById('closeRecipeBtn').addEventListener('click', () => {
+    document.getElementById('recipeBookUI').style.display = 'none';
+});
+
+// カテゴリーボタンのイベント設定
+document.querySelectorAll('.recipe-category-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.recipe-category-btn').forEach(b => b.style.opacity = '0.7');
+        btn.style.opacity = '1';
+        if (window.recipeBook && window.recipeBook.displayDetailedRecipes) {
+            window.recipeBook.displayDetailedRecipes();
+        }
+    });
+});
+
 // ゲーム開始
 gameLoop();
