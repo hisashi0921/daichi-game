@@ -945,6 +945,11 @@ function gameLoop() {
     if (dayNightCycle && dayNightCycle.update) {
         dayNightCycle.update();
 
+        // BGMの更新（昼夜切り替え）
+        if (window.bgmManager) {
+            window.bgmManager.updateBGM();
+        }
+
         // 時間表示の更新
         const timeIcon = document.getElementById('timeIcon');
         const timeText = document.getElementById('timeText');
@@ -1478,15 +1483,20 @@ function explodeTNT(x, y) {
 
 // ========== セーブ/ロード機能 ==========
 function saveGame() {
+    // 完全なセーブデータを作成
     const saveData = {
-        version: '1.0',
+        version: '1.1',
         timestamp: Date.now(),
         world: {
-            blocks: world.blocks
+            blocks: world.blocks,
+            width: world.width,
+            height: world.height
         },
         player: {
             x: player.x,
             y: player.y,
+            vx: player.vx,
+            vy: player.vy,
             health: player.health,
             maxHealth: player.maxHealth,
             equippedWeapon: player.equippedWeapon,
@@ -1498,11 +1508,21 @@ function saveGame() {
         },
         inventory: {
             items: inventory.items,
-            selectedSlot: inventory.selectedSlot
+            selectedSlot: inventory.selectedSlot,
+            maxSlots: inventory.maxSlots
         },
         dayNight: {
-            currentTime: dayNightCycle.currentTime
-        }
+            currentTime: dayNightCycle ? dayNightCycle.currentTime : 720,
+            dayDuration: dayNightCycle ? dayNightCycle.dayDuration : 600
+        },
+        enemies: enemyManager ? {
+            enemies: enemyManager.enemies.map(e => ({
+                x: e.x,
+                y: e.y,
+                type: e.type,
+                health: e.health
+            }))
+        } : null
     };
 
     localStorage.setItem('craftMasterSave', JSON.stringify(saveData));
@@ -1526,45 +1546,85 @@ function loadGame() {
         return;
     }
 
-    const saveData = JSON.parse(saveDataStr);
+    try {
+        const saveData = JSON.parse(saveDataStr);
 
-    // ワールドデータの復元
-    world.blocks = saveData.world.blocks;
+        // ワールドデータの復元
+        if (saveData.world) {
+            world.blocks = saveData.world.blocks;
+            if (saveData.world.width) world.width = saveData.world.width;
+            if (saveData.world.height) world.height = saveData.world.height;
+        }
 
-    // プレイヤーデータの復元
-    player.x = saveData.player.x;
-    player.y = saveData.player.y;
-    player.health = saveData.player.health;
-    player.maxHealth = saveData.player.maxHealth;
-    player.equippedWeapon = saveData.player.equippedWeapon;
-    player.equippedArmor = saveData.player.equippedArmor;
+        // プレイヤーデータの復元
+        if (saveData.player) {
+            player.x = saveData.player.x || player.x;
+            player.y = saveData.player.y || player.y;
+            player.vx = saveData.player.vx || 0;
+            player.vy = saveData.player.vy || 0;
+            player.health = saveData.player.health || player.health;
+            player.maxHealth = saveData.player.maxHealth || player.maxHealth;
+            player.equippedWeapon = saveData.player.equippedWeapon || null;
+            player.equippedArmor = saveData.player.equippedArmor || null;
+        }
 
-    // インベントリの復元
-    inventory.items = saveData.inventory.items;
-    inventory.selectedSlot = saveData.inventory.selectedSlot;
-    inventory.updateDisplay();
+        // インベントリの復元（完全に復元）
+        if (saveData.inventory) {
+            inventory.items = saveData.inventory.items || [];
+            inventory.selectedSlot = saveData.inventory.selectedSlot || 0;
+            if (saveData.inventory.maxSlots) {
+                inventory.maxSlots = saveData.inventory.maxSlots;
+            }
+            inventory.updateDisplay();
+        }
 
-    // 昼夜サイクルの復元
-    dayNightCycle.currentTime = saveData.dayNight.currentTime;
+        // 昼夜サイクルの復元（時間を正確に復元）
+        if (saveData.dayNight && dayNightCycle) {
+            dayNightCycle.currentTime = saveData.dayNight.currentTime || 720;
+            if (saveData.dayNight.dayDuration) {
+                dayNightCycle.dayDuration = saveData.dayNight.dayDuration;
+            }
+        }
 
-    // カメラ位置の復元
-    if (saveData.camera) {
-        camera.x = saveData.camera.x;
-        camera.y = saveData.camera.y;
-    } else {
-        // 古いセーブデータの場合、プレイヤーを中心にカメラを設定
-        camera.follow(player);
+        // 敵の復元（オプション）
+        if (saveData.enemies && saveData.enemies.enemies && enemyManager) {
+            enemyManager.enemies = [];
+            saveData.enemies.enemies.forEach(e => {
+                const enemy = enemyManager.createEnemy(e.type, e.x, e.y);
+                if (enemy) {
+                    enemy.health = e.health;
+                    enemyManager.enemies.push(enemy);
+                }
+            });
+        }
+
+        // カメラ位置の復元
+        if (saveData.camera) {
+            camera.x = saveData.camera.x;
+            camera.y = saveData.camera.y;
+        } else {
+            // 古いセーブデータの場合、プレイヤーを中心にカメラを設定
+            camera.follow(player);
+        }
+
+        // 装備表示の更新
+        updateEquipmentDisplay();
+
+        // ロード成功メッセージ
+        const msg = document.createElement('div');
+        msg.textContent = '📂 ロードしました！';
+        msg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2196F3; color: white; padding: 20px; border-radius: 10px; font-size: 24px; z-index: 1000;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 2000);
+
+    } catch(error) {
+        console.error('セーブデータの読み込みエラー:', error);
+        const msg = document.createElement('div');
+        msg.textContent = '❌ セーブデータが壊れています';
+        msg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #f44336; color: white; padding: 20px; border-radius: 10px; font-size: 24px; z-index: 1000;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 3000);
     }
-
-    // 装備表示の更新
-    updateEquipmentDisplay();
-
-    // ロード成功メッセージ
-    const msg = document.createElement('div');
-    msg.textContent = '📂 ロードしました！';
-    msg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2196F3; color: white; padding: 20px; border-radius: 10px; font-size: 24px; z-index: 1000;';
-    document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), 2000);
 }
 
 // セーブ/ロードボタンのイベント

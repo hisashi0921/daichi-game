@@ -364,6 +364,21 @@
         <button id="loadBtn" style="padding: 8px 16px; background: #2196F3; border: 2px solid #333; border-radius: 5px; color: white; font-weight: bold; cursor: pointer;">📂 ロード</button>
     </div>
 
+    <!-- BGMコントロール -->
+    <div style="position: fixed; top: 240px; left: 10px; background: rgba(0, 0, 0, 0.7); border: 2px solid #333; border-radius: 5px; padding: 8px;">
+        <button id="bgmBtn" onclick="toggleBGM()" style="padding: 6px 12px; background: #9C27B0; border: 2px solid #333; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; margin-bottom: 5px;">🎵 BGM</button>
+        <input type="range" id="bgmVolume" min="0" max="100" value="30" style="width: 80px; display: block;" onchange="changeBGMVolume(this.value)">
+        <div style="color: white; font-size: 10px; text-align: center; margin-top: 2px;">音量: <span id="volumeText">30</span>%</div>
+    </div>
+
+    <!-- BGM要素（非表示） -->
+    <audio id="bgmDay" loop>
+        <source src="data:audio/midi;base64," type="audio/midi">
+    </audio>
+    <audio id="bgmNight" loop>
+        <source src="data:audio/midi;base64," type="audio/midi">
+    </audio>
+
     <!-- 装備スロット -->
     <div id="equipmentSlots" style="position: fixed; top: 60px; right: 100px; background: rgba(0, 0, 0, 0.7); border: 2px solid #333; border-radius: 5px; padding: 10px;">
         <div style="color: white; font-size: 12px; margin-bottom: 5px;">装備</div>
@@ -377,6 +392,7 @@
     <script src="js/enemies.js"></script>
     <script src="js/chest.js"></script>
     <script src="js/recipebook.js"></script>
+    <script src="js/bgm.js"></script>
     <script src="js/game.js"></script>
     <script src="js/isometric.js"></script>
 </body>
