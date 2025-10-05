@@ -554,4 +554,28 @@ window.addEventListener('load', () => {
             }
         };
     }
+
+    // 閉じるボタンの設定
+    const closeRecipeBtn = document.getElementById('closeRecipeBtn');
+    if (closeRecipeBtn) {
+        closeRecipeBtn.onclick = () => {
+            const recipeBookUI = document.getElementById('recipeBookUI');
+            if (recipeBookUI) {
+                recipeBookUI.style.display = 'none';
+            }
+        };
+    }
+
+    // カテゴリーボタンの設定
+    const categoryBtns = document.querySelectorAll('.recipe-category-btn');
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // すべてのボタンの透明度をリセット
+            categoryBtns.forEach(b => b.style.opacity = '0.7');
+            // クリックされたボタンを強調
+            btn.style.opacity = '1';
+            // レシピを再表示
+            window.recipeBook.displayDetailedRecipes();
+        });
+    });
 });
