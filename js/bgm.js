@@ -44,11 +44,13 @@ class BGMManager {
     }
 
     playAmbientSound(minFreq, maxFreq, type) {
+        // currentBGMを先に設定（重要！）
+        this.currentBGM = type;
         console.log('BGM: playAmbientSound called, type:', type, 'AudioContext state:', this.audioContext.state, 'volume:', this.gainNode.gain.value);
 
         const playChirp = () => {
             if (!this.isPlaying || this.currentBGM !== type) {
-                console.log('BGM: Chirp stopped, isPlaying:', this.isPlaying, 'currentBGM:', this.currentBGM);
+                console.log('BGM: Chirp stopped, isPlaying:', this.isPlaying, 'currentBGM:', this.currentBGM, 'expected:', type);
                 return;
             }
 
@@ -70,13 +72,13 @@ class BGMManager {
 
             const now = this.audioContext.currentTime;
             gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.2, now + 0.02);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
 
             oscillator.start(now);
-            oscillator.stop(now + 0.2);
+            oscillator.stop(now + 0.3);
 
-            console.log('BGM: Chirp played, freq:', oscillator.frequency.value, 'type:', oscillator.type);
+            console.log('BGM: Chirp played, freq:', oscillator.frequency.value.toFixed(2), 'Hz, type:', oscillator.type);
 
             // 次の音までランダムな間隔
             const interval = type === 'day' ?
@@ -87,7 +89,6 @@ class BGMManager {
         };
 
         playChirp();
-        this.currentBGM = type;
     }
 
     playMelody(melody, type) {
