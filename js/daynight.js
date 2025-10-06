@@ -120,17 +120,17 @@ class DayNightCycle {
 
         switch(phase) {
             case 'DAWN':
-                return 0.3;
+                return 0.15;
             case 'MORNING':
             case 'NOON':
             case 'AFTERNOON':
                 return 0;
             case 'DUSK':
-                return 0.4;
+                return 0.2;
             case 'NIGHT':
-                return 0.7;
+                return 0.35;
             case 'LATE_NIGHT':
-                return 0.8;
+                return 0.4;
             default:
                 return 0;
         }
