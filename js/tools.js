@@ -43,6 +43,30 @@ const toolInfo = {
         material: ToolMaterial.STONE,
         damage: 3,
         speed: 3
+    },
+    [window.ItemType.WOODEN_SHOVEL]: {
+        type: ToolType.SHOVEL,
+        material: ToolMaterial.WOOD,
+        damage: 1,
+        speed: 2
+    },
+    [window.ItemType.STONE_SHOVEL]: {
+        type: ToolType.SHOVEL,
+        material: ToolMaterial.STONE,
+        damage: 2,
+        speed: 4
+    },
+    [window.ItemType.IRON_SHOVEL]: {
+        type: ToolType.SHOVEL,
+        material: ToolMaterial.IRON,
+        damage: 3,
+        speed: 6
+    },
+    [window.ItemType.DIAMOND_SHOVEL]: {
+        type: ToolType.SHOVEL,
+        material: ToolMaterial.DIAMOND,
+        damage: 4,
+        speed: 8
     }
 };
 

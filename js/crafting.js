@@ -75,7 +75,12 @@ const ItemType = {
     COOKED_BEEF: 70,
     RAW_CHICKEN: 71,
     COOKED_CHICKEN: 72,
-    EGG: 73
+    EGG: 73,
+    // シャベル
+    WOODEN_SHOVEL: 74,
+    STONE_SHOVEL: 75,
+    IRON_SHOVEL: 76,
+    DIAMOND_SHOVEL: 77
 };
 
 // アイテム情報の拡張
@@ -161,7 +166,12 @@ const itemInfo = {
     [ItemType.COOKED_BEEF]: { name: 'ステーキ', color: '#8B4513', drops: ItemType.COOKED_BEEF, icon: '🥩', healing: 8 },
     [ItemType.RAW_CHICKEN]: { name: '生の鶏肉', color: '#FFE4E1', drops: ItemType.RAW_CHICKEN, icon: '🍗', healing: 1 },
     [ItemType.COOKED_CHICKEN]: { name: '焼き鳥', color: '#D2691E', drops: ItemType.COOKED_CHICKEN, icon: '🍗', healing: 5 },
-    [ItemType.EGG]: { name: '卵', color: '#FFF8DC', drops: ItemType.EGG, icon: '🥚', healing: 1 }
+    [ItemType.EGG]: { name: '卵', color: '#FFF8DC', drops: ItemType.EGG, icon: '🥚', healing: 1 },
+    // シャベル
+    [ItemType.WOODEN_SHOVEL]: { name: '木のシャベル', color: '#A0522D', drops: ItemType.WOODEN_SHOVEL, icon: '🔨' },
+    [ItemType.STONE_SHOVEL]: { name: '石のシャベル', color: '#696969', drops: ItemType.STONE_SHOVEL, icon: '⛏️' },
+    [ItemType.IRON_SHOVEL]: { name: '鉄のシャベル', color: '#C0C0C0', drops: ItemType.IRON_SHOVEL, icon: '⚒️' },
+    [ItemType.DIAMOND_SHOVEL]: { name: 'ダイヤのシャベル', color: '#00CED1', drops: ItemType.DIAMOND_SHOVEL, icon: '⛏️' }
 };
 
 // クラフトレシピ
@@ -247,6 +257,50 @@ class CraftingRecipes {
                 [null, ItemType.STICK, null]
             ],
             result: { item: ItemType.STONE_AXE, count: 1 },
+            type: 'table'
+        });
+
+        // 木のシャベル
+        this.addRecipe({
+            pattern: [
+                [null, ItemType.PLANKS, null],
+                [null, ItemType.STICK, null],
+                [null, ItemType.STICK, null]
+            ],
+            result: { item: ItemType.WOODEN_SHOVEL, count: 1 },
+            type: 'table'
+        });
+
+        // 石のシャベル
+        this.addRecipe({
+            pattern: [
+                [null, ItemType.COBBLESTONE, null],
+                [null, ItemType.STICK, null],
+                [null, ItemType.STICK, null]
+            ],
+            result: { item: ItemType.STONE_SHOVEL, count: 1 },
+            type: 'table'
+        });
+
+        // 鉄のシャベル
+        this.addRecipe({
+            pattern: [
+                [null, ItemType.IRON_INGOT, null],
+                [null, ItemType.STICK, null],
+                [null, ItemType.STICK, null]
+            ],
+            result: { item: ItemType.IRON_SHOVEL, count: 1 },
+            type: 'table'
+        });
+
+        // ダイヤのシャベル
+        this.addRecipe({
+            pattern: [
+                [null, ItemType.DIAMOND, null],
+                [null, ItemType.STICK, null],
+                [null, ItemType.STICK, null]
+            ],
+            result: { item: ItemType.DIAMOND_SHOVEL, count: 1 },
             type: 'table'
         });
 
