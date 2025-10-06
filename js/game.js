@@ -115,7 +115,7 @@ class World {
                         this.blocks[x][y] = window.ItemType ? window.ItemType.GOLD_ORE : BlockType.STONE;
                     }
                     // ダイヤモンド鉱石（深層・レア）
-                    else if (depth > 0.65 && depth < 0.8 && Math.random() < 0.008) {
+                    else if (depth > 0.6 && depth < 0.85 && Math.random() < 0.025) {
                         this.blocks[x][y] = window.ItemType ? window.ItemType.DIAMOND_ORE : BlockType.STONE;
                     }
                     // エメラルド（最深層・レア）
@@ -1438,12 +1438,18 @@ function cookMeat(type) {
     if (!recipe) return;
 
     // 生肉を持っているかチェック
-    const hasRaw = inventory.items.includes(recipe.raw);
-    if (hasRaw) {
-        // 生肉を消費
-        const index = inventory.items.indexOf(recipe.raw);
-        inventory.items[index] = recipe.cooked;
-        inventory.updateDisplay();
+    let rawSlotIndex = -1;
+    for (let i = 0; i < inventory.slots.length; i++) {
+        if (inventory.slots[i].item === recipe.raw) {
+            rawSlotIndex = i;
+            break;
+        }
+    }
+
+    if (rawSlotIndex !== -1) {
+        // 生肉を消費して調理済みに変換
+        inventory.slots[rawSlotIndex].item = recipe.cooked;
+        inventory.createUI();
 
         // メッセージ表示
         const msg = document.createElement('div');
@@ -1619,8 +1625,8 @@ function saveGame() {
             y: camera.y
         },
         inventory: {
-            items: inventory.items,
-            selectedSlot: inventory.selectedSlot,
+            slots: inventory.slots,
+            selectedIndex: inventory.selectedIndex,
             maxSlots: inventory.maxSlots
         },
         dayNight: {
@@ -1634,7 +1640,11 @@ function saveGame() {
                 type: e.type,
                 health: e.health
             }))
-        } : null
+        } : null,
+        chests: chestManager ? Array.from(chestManager.chests.entries()).map(([key, chest]) => ({
+            key: key,
+            slots: chest.slots
+        })) : []
     };
 
     localStorage.setItem('craftMasterSave', JSON.stringify(saveData));
@@ -1682,12 +1692,16 @@ function loadGame() {
 
         // インベントリの復元（完全に復元）
         if (saveData.inventory) {
-            inventory.items = saveData.inventory.items || [];
-            inventory.selectedSlot = saveData.inventory.selectedSlot || 0;
+            if (saveData.inventory.slots) {
+                inventory.slots = saveData.inventory.slots;
+            }
+            if (saveData.inventory.selectedIndex !== undefined) {
+                inventory.selectedIndex = saveData.inventory.selectedIndex;
+            }
             if (saveData.inventory.maxSlots) {
                 inventory.maxSlots = saveData.inventory.maxSlots;
             }
-            inventory.updateDisplay();
+            inventory.createUI();
         }
 
         // 昼夜サイクルの復元（時間を正確に復元）
@@ -1705,6 +1719,20 @@ function loadGame() {
                 // createEnemyメソッドが存在しない場合はスキップ
             } catch(e) {
                 console.log('敵データのスキップ');
+            }
+        }
+
+        // チェストの復元
+        if (saveData.chests && chestManager) {
+            try {
+                chestManager.chests.clear();
+                saveData.chests.forEach(chestData => {
+                    const chest = new Chest(0, 0);
+                    chest.slots = chestData.slots;
+                    chestManager.chests.set(chestData.key, chest);
+                });
+            } catch(e) {
+                console.log('チェストデータの復元エラー:', e);
             }
         }
 

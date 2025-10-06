@@ -205,6 +205,14 @@ class ChestUI {
         this.isOpen = true;
         this.updateUI();
         this.uiElement.style.display = 'block';
+
+        // Escキーでチェストを閉じるイベントリスナーを追加
+        this.escKeyHandler = (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.close();
+            }
+        };
+        window.addEventListener('keydown', this.escKeyHandler);
     }
 
     close() {
@@ -212,6 +220,12 @@ class ChestUI {
         this.currentChest = null;
         this.selectedChestSlot = -1;
         this.uiElement.style.display = 'none';
+
+        // Escキーのイベントリスナーを削除
+        if (this.escKeyHandler) {
+            window.removeEventListener('keydown', this.escKeyHandler);
+            this.escKeyHandler = null;
+        }
     }
 
     updateUI() {
