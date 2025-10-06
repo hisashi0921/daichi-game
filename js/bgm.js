@@ -2,7 +2,7 @@
 class BGMManager {
     constructor() {
         this.isPlaying = false;
-        this.volume = 0.3;
+        this.volume = 0.5; // デフォルト音量を上げる
         this.currentBGM = null;
         this.audioContext = null;
         this.oscillators = [];
@@ -20,8 +20,9 @@ class BGMManager {
             this.gainNode = this.audioContext.createGain();
             this.gainNode.connect(this.audioContext.destination);
             this.gainNode.gain.value = this.volume;
+            console.log('BGM: AudioContext initialized, state:', this.audioContext.state, 'volume:', this.volume);
         } catch(e) {
-            console.log('Web Audio APIがサポートされていません');
+            console.error('BGM: Web Audio APIがサポートされていません', e);
         }
     }
 
@@ -43,6 +44,11 @@ class BGMManager {
     }
 
     playAmbientSound(minFreq, maxFreq, type) {
+        // AudioContextをresumeする（ブラウザの自動再生ポリシー対応）
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+
         const playChirp = () => {
             if (!this.isPlaying || this.currentBGM !== type) return;
 
@@ -58,16 +64,16 @@ class BGMManager {
 
             const now = this.audioContext.currentTime;
             gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.02, now + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0.15, now + 0.02);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
             oscillator.start(now);
-            oscillator.stop(now + 0.1);
+            oscillator.stop(now + 0.15);
 
             // 次の音までランダムな間隔
             const interval = type === 'day' ?
-                2000 + Math.random() * 3000 : // 昼は2-5秒ごと
-                500 + Math.random() * 1000;   // 夜は0.5-1.5秒ごと
+                800 + Math.random() * 1200 : // 昼は0.8-2秒ごと
+                300 + Math.random() * 500;   // 夜は0.3-0.8秒ごと
 
             setTimeout(playChirp, interval);
         };
@@ -127,14 +133,24 @@ class BGMManager {
         this.isPlaying = !this.isPlaying;
 
         if (this.isPlaying) {
+            // AudioContextをresumeする（重要！）
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume().then(() => {
+                    console.log('BGM: AudioContext resumed');
+                });
+            }
+
             // 時間帯に応じてBGMを再生
             if (window.dayNightCycle && window.dayNightCycle.isNight()) {
                 this.playNightBGM();
+                console.log('BGM: Night BGM started');
             } else {
                 this.playDayBGM();
+                console.log('BGM: Day BGM started');
             }
         } else {
             this.stopBGM();
+            console.log('BGM: Stopped');
         }
 
         // ボタンのテキストを更新
@@ -200,7 +216,7 @@ class BGMManager {
         const settings = localStorage.getItem('bgmSettings');
         if (settings) {
             const parsed = JSON.parse(settings);
-            this.volume = (parsed.volume || 30) / 100;
+            this.volume = (parsed.volume || 50) / 100;
 
             // 自動再生はしない（ブラウザの制限のため）
             // ユーザーが手動で開始する必要がある
