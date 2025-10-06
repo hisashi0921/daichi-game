@@ -26,21 +26,41 @@ class BGMManager {
         }
     }
 
-    // シンプルな環境音を生成
+    // 昼のBGM - 明るいメロディー
     playDayBGM() {
         if (!this.audioContext) return;
         this.stopBGM();
 
-        // 昼は鳥の鳴き声風の音
-        this.playAmbientSound(800, 1200, 'day');
+        // C Major スケールで明るいメロディー
+        const melody = [
+            { note: 523.25, duration: 0.3 }, // C5
+            { note: 587.33, duration: 0.3 }, // D5
+            { note: 659.25, duration: 0.3 }, // E5
+            { note: 698.46, duration: 0.3 }, // F5
+            { note: 783.99, duration: 0.6 }, // G5
+            { note: 698.46, duration: 0.3 }, // F5
+            { note: 659.25, duration: 0.3 }, // E5
+            { note: 587.33, duration: 0.3 }, // D5
+            { note: 523.25, duration: 0.6 }, // C5
+        ];
+        this.playMelodyLoop(melody, 'day');
     }
 
     playNightBGM() {
         if (!this.audioContext) return;
         this.stopBGM();
 
-        // 夜はコオロギの音風
-        this.playAmbientSound(400, 450, 'night');
+        // A Minor スケールで落ち着いたメロディー
+        const melody = [
+            { note: 440.00, duration: 0.4 }, // A4
+            { note: 493.88, duration: 0.4 }, // B4
+            { note: 523.25, duration: 0.4 }, // C5
+            { note: 587.33, duration: 0.4 }, // D5
+            { note: 523.25, duration: 0.4 }, // C5
+            { note: 493.88, duration: 0.4 }, // B4
+            { note: 440.00, duration: 0.8 }, // A4
+        ];
+        this.playMelodyLoop(melody, 'night');
     }
 
     playAmbientSound(minFreq, maxFreq, type) {
@@ -91,11 +111,12 @@ class BGMManager {
         playChirp();
     }
 
-    playMelody(melody, type) {
-        let time = this.audioContext.currentTime;
+    playMelodyLoop(melody, type) {
+        this.currentBGM = type;
+        console.log('BGM: playMelodyLoop started, type:', type);
 
         const playNote = (frequency, duration, startTime) => {
-            if (frequency === 0) return; // 休符
+            if (!this.isPlaying || this.currentBGM !== type) return;
 
             const oscillator = this.audioContext.createOscillator();
             const noteGain = this.audioContext.createGain();
@@ -104,11 +125,11 @@ class BGMManager {
             noteGain.connect(this.gainNode);
 
             oscillator.frequency.value = frequency;
-            oscillator.type = type === 'day' ? 'triangle' : 'sine'; // 昼は三角波、夜はサイン波
+            oscillator.type = type === 'day' ? 'sine' : 'triangle'; // 昼はサイン波、夜は三角波
 
             // エンベロープ（音の立ち上がりと減衰）
             noteGain.gain.setValueAtTime(0, startTime);
-            noteGain.gain.linearRampToValueAtTime(0.1, startTime + 0.05);
+            noteGain.gain.linearRampToValueAtTime(0.15, startTime + 0.02);
             noteGain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
             oscillator.start(startTime);
@@ -117,25 +138,29 @@ class BGMManager {
             this.oscillators.push(oscillator);
         };
 
-        // メロディーをループ再生
-        const playLoop = () => {
+        const playSequence = () => {
+            if (!this.isPlaying || this.currentBGM !== type) {
+                console.log('BGM: Melody stopped');
+                return;
+            }
+
+            let time = this.audioContext.currentTime;
+
             melody.forEach(note => {
                 playNote(note.note, note.duration, time);
                 time += note.duration;
             });
 
-            // ループ
-            if (this.isPlaying) {
-                setTimeout(() => {
-                    if (this.isPlaying && this.currentBGM === type) {
-                        this.playMelody(melody, type);
-                    }
-                }, (time - this.audioContext.currentTime) * 1000);
-            }
+            // メロディー終了後、2秒待ってから次のループ
+            const totalDuration = melody.reduce((sum, note) => sum + note.duration, 0);
+            setTimeout(() => {
+                if (this.isPlaying && this.currentBGM === type) {
+                    playSequence();
+                }
+            }, (totalDuration + 2) * 1000);
         };
 
-        playLoop();
-        this.currentBGM = type;
+        playSequence();
     }
 
     async toggle() {
