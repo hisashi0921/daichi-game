@@ -1826,6 +1826,31 @@ document.getElementById('attackBtn').addEventListener('click', () => {
     player.attack(enemyManager);
 });
 
+// ========== スマホ用食べるボタン ==========
+document.getElementById('eatBtn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const selectedItem = inventory.getSelectedItem();
+    if (selectedItem) {
+        const itemData = window.itemInfo[selectedItem];
+        if (itemData && itemData.healing) {
+            if (eatFood(selectedItem)) {
+                inventory.useSelectedItem();
+            }
+        }
+    }
+});
+document.getElementById('eatBtn').addEventListener('click', () => {
+    const selectedItem = inventory.getSelectedItem();
+    if (selectedItem) {
+        const itemData = window.itemInfo[selectedItem];
+        if (itemData && itemData.healing) {
+            if (eatFood(selectedItem)) {
+                inventory.useSelectedItem();
+            }
+        }
+    }
+});
+
 // ========== 装備システム ==========
 // プレイヤーに装備関連のプロパティを追加
 player.equippedWeapon = null;
