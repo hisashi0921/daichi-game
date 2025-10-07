@@ -1406,16 +1406,24 @@ function eatFood(itemType) {
 function openFurnaceUI() {
     const furnaceUI = document.createElement('div');
     furnaceUI.id = 'furnaceUI';
-    furnaceUI.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); border: 3px solid #8B4513; border-radius: 10px; padding: 20px; z-index: 100;';
+    furnaceUI.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); border: 3px solid #8B4513; border-radius: 10px; padding: 20px; z-index: 100; max-width: 500px;';
 
     furnaceUI.innerHTML = `
         <h2 style="color: #FFD700; text-align: center; margin-bottom: 15px;">🔥 かまど</h2>
-        <div style="color: white; margin-bottom: 10px;">生肉を焼いて調理しよう！</div>
-        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="cookMeat('pork')" style="padding: 10px 20px; background: #FF6B6B; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🐷 豚肉を焼く</button>
-            <button onclick="cookMeat('beef')" style="padding: 10px 20px; background: #DC143C; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🐄 牛肉を焼く</button>
-            <button onclick="cookMeat('chicken')" style="padding: 10px 20px; background: #FFE4E1; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🐔 鶏肉を焼く</button>
+
+        <h3 style="color: #FFA500; margin-bottom: 10px;">⛏️ 鉱石の精錬</h3>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
+            <button onclick="smeltOre('iron')" style="padding: 10px 15px; background: #C0C0C0; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🔶 鉄鉱石→鉄</button>
+            <button onclick="smeltOre('gold')" style="padding: 10px 15px; background: #FFD700; border: 2px solid #333; border-radius: 5px; color: black; cursor: pointer;">🟡 金鉱石→金</button>
         </div>
+
+        <h3 style="color: #FFA500; margin-bottom: 10px;">🍖 肉の調理</h3>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="cookMeat('pork')" style="padding: 10px 15px; background: #FF6B6B; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🐷 豚肉</button>
+            <button onclick="cookMeat('beef')" style="padding: 10px 15px; background: #DC143C; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer;">🐄 牛肉</button>
+            <button onclick="cookMeat('chicken')" style="padding: 10px 15px; background: #FFE4E1; border: 2px solid #333; border-radius: 5px; color: black; cursor: pointer;">🐔 鶏肉</button>
+        </div>
+
         <button onclick="closeFurnaceUI()" style="margin-top: 20px; padding: 10px 20px; background: #f44336; border: 2px solid #333; border-radius: 5px; color: white; cursor: pointer; width: 100%;">とじる</button>
     `;
 
@@ -1466,8 +1474,48 @@ function cookMeat(type) {
     }
 }
 
+// 鉱石の精錬
+function smeltOre(type) {
+    const recipes = {
+        'iron': { ore: window.ItemType.IRON_ORE, ingot: window.ItemType.IRON_INGOT, name: '鉄インゴット' },
+        'gold': { ore: window.ItemType.GOLD_ORE, ingot: window.ItemType.GOLD_INGOT, name: '金インゴット' }
+    };
+
+    const recipe = recipes[type];
+    if (!recipe) return;
+
+    // 鉱石を持っているかチェック
+    let oreSlotIndex = -1;
+    for (let i = 0; i < inventory.slots.length; i++) {
+        if (inventory.slots[i].item === recipe.ore) {
+            oreSlotIndex = i;
+            break;
+        }
+    }
+
+    if (oreSlotIndex !== -1) {
+        // 鉱石を消費してインゴットに変換
+        inventory.slots[oreSlotIndex].item = recipe.ingot;
+        inventory.createUI();
+
+        // メッセージ表示
+        const msg = document.createElement('div');
+        msg.textContent = `🔥 ${recipe.name}ができた！`;
+        msg.style.cssText = 'position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(255, 152, 0, 0.9); color: white; padding: 15px; border-radius: 10px; font-size: 18px; z-index: 1001;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 1500);
+    } else {
+        const msg = document.createElement('div');
+        msg.textContent = `❌ ${type === 'iron' ? '鉄鉱石' : '金鉱石'}がありません`;
+        msg.style.cssText = 'position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(244, 67, 54, 0.9); color: white; padding: 15px; border-radius: 10px; font-size: 18px; z-index: 1001;';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 1500);
+    }
+}
+
 // グローバル関数として登録
 window.cookMeat = cookMeat;
+window.smeltOre = smeltOre;
 window.closeFurnaceUI = closeFurnaceUI;
 
 // ========== ベッドで寝る機能 ==========
