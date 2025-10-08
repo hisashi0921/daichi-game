@@ -1390,6 +1390,9 @@ function eatFood(itemType) {
         // 体力回復
         player.health = Math.min(player.health + itemData.healing, player.maxHealth);
 
+        // 体力バーの表示を更新（重要！）
+        player.updateHealthBar();
+
         // メッセージ表示
         const msg = document.createElement('div');
         msg.textContent = `😋 ${itemData.name} +${itemData.healing}HP`;
