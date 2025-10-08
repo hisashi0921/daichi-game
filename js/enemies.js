@@ -235,14 +235,9 @@ class Enemy {
         ctx.fillStyle = this.type === EnemyType.ZOMBIE ? '#FF0000' : '#000';
 
         if (this.type === EnemyType.SPIDER) {
-            // クモの目（8個）
-            for (let i = 0; i < 4; i++) {
-                ctx.fillRect(
-                    this.x - camera.x + 4 + i * 6,
-                    this.y - camera.y + 4,
-                    3, 3
-                );
-            }
+            // クモの目（2個）
+            ctx.fillRect(this.x - camera.x + 6, this.y - camera.y + 6, 4, 4);
+            ctx.fillRect(this.x - camera.x + 16, this.y - camera.y + 6, 4, 4);
         } else {
             // ゾンビ・スケルトンの目
             ctx.fillRect(this.x - camera.x + 6, this.y - camera.y + 8, 4, 4);
