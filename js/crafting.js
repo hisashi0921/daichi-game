@@ -182,6 +182,30 @@ class CraftingRecipes {
     }
 
     initializeRecipes() {
+        // 虹色ブロックのレシピを最優先（失敗作にならないように）
+
+        // にじいろブロック = 土+石+砂+葉
+        this.addRecipe({
+            pattern: [
+                [ItemType.DIRT, ItemType.STONE, null],
+                [ItemType.SAND, ItemType.LEAVES, null],
+                [null, null, null]
+            ],
+            result: { item: 25, count: 1 }, // にじいろブロック
+            type: 'table'
+        });
+
+        // にじいろブロック = 土+丸石+砂+葉（丸石バージョン）
+        this.addRecipe({
+            pattern: [
+                [ItemType.DIRT, ItemType.COBBLESTONE, null],
+                [ItemType.SAND, ItemType.LEAVES, null],
+                [null, null, null]
+            ],
+            result: { item: 25, count: 1 }, // にじいろブロック
+            type: 'table'
+        });
+
         // 手持ちクラフト（2x2）レシピ
 
         // 原木 → 木材×4
@@ -414,28 +438,6 @@ class CraftingRecipes {
                 [null, null, null]
             ],
             result: { item: 30, count: 1 }, // ダイヤ
-            type: 'table'
-        });
-
-        // にじいろブロック = 土+石+砂+葉
-        this.addRecipe({
-            pattern: [
-                [ItemType.DIRT, ItemType.STONE, null],
-                [ItemType.SAND, ItemType.LEAVES, null],
-                [null, null, null]
-            ],
-            result: { item: 25, count: 1 }, // にじいろブロック
-            type: 'table'
-        });
-
-        // にじいろブロック = 土+丸石+砂+葉（丸石バージョン）
-        this.addRecipe({
-            pattern: [
-                [ItemType.DIRT, ItemType.COBBLESTONE, null],
-                [ItemType.SAND, ItemType.LEAVES, null],
-                [null, null, null]
-            ],
-            result: { item: 25, count: 1 }, // にじいろブロック
             type: 'table'
         });
 
