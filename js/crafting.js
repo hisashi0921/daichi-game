@@ -752,6 +752,8 @@ class CraftingRecipes {
         let hasStone = false;
         let hasWood = false;
         let hasDirt = false;
+        let hasSand = false;
+        let hasLeaves = false;
 
         for (let row of pattern) {
             if (row) {
@@ -761,9 +763,16 @@ class CraftingRecipes {
                         if (item === ItemType.STONE || item === ItemType.COBBLESTONE) hasStone = true;
                         if (item === ItemType.WOOD || item === ItemType.PLANKS) hasWood = true;
                         if (item === ItemType.DIRT || item === ItemType.GRASS) hasDirt = true;
+                        if (item === ItemType.SAND) hasSand = true;
+                        if (item === ItemType.LEAVES) hasLeaves = true;
                     }
                 }
             }
+        }
+
+        // 虹色ブロックの組み合わせ（土+石+砂+葉）
+        if (hasDirt && hasStone && hasSand && hasLeaves && itemCount === 4) {
+            return { item: 25, count: 1 }; // にじいろブロック
         }
 
         // 失敗作の種類を決定
