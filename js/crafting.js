@@ -417,11 +417,11 @@ class CraftingRecipes {
             type: 'table'
         });
 
-        // にじいろブロック = 土+石+砂+草
+        // にじいろブロック = 土+石+砂+葉
         this.addRecipe({
             pattern: [
                 [ItemType.DIRT, ItemType.STONE, null],
-                [ItemType.SAND, ItemType.GRASS, null],
+                [ItemType.SAND, ItemType.LEAVES, null],
                 [null, null, null]
             ],
             result: { item: 25, count: 1 }, // にじいろブロック
