@@ -283,8 +283,8 @@ class EnemyManager {
     constructor() {
         this.enemies = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 10000; // 10秒ごとにスポーン
-        this.maxEnemies = 10;
+        this.spawnInterval = 20000; // 20秒ごとにスポーン（10秒→20秒に変更）
+        this.maxEnemies = 5; // 最大5体（10体→5体に変更）
         this.dayNightCycle = null; // 昼夜サイクルの参照
     }
 
