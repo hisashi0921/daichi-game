@@ -428,6 +428,17 @@ class CraftingRecipes {
             type: 'table'
         });
 
+        // にじいろブロック = 土+丸石+砂+葉（丸石バージョン）
+        this.addRecipe({
+            pattern: [
+                [ItemType.DIRT, ItemType.COBBLESTONE, null],
+                [ItemType.SAND, ItemType.LEAVES, null],
+                [null, null, null]
+            ],
+            result: { item: 25, count: 1 }, // にじいろブロック
+            type: 'table'
+        });
+
         // にっこりブロック = 木材×2
         this.addRecipe({
             pattern: [
