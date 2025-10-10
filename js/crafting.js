@@ -441,11 +441,11 @@ class CraftingRecipes {
             type: 'table'
         });
 
-        // にっこりブロック = 木材×2
+        // にっこりブロック = 木材×2（横並び）
         this.addRecipe({
             pattern: [
-                [ItemType.PLANKS, null],
-                [ItemType.PLANKS, null]
+                [ItemType.PLANKS, ItemType.PLANKS],
+                [null, null]
             ],
             result: { item: 26, count: 1 }, // にっこりブロック
             type: 'hand'
