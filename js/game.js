@@ -1,7 +1,7 @@
 // ゲーム設定
 const BLOCK_SIZE = 32;
-const WORLD_WIDTH = 300;  // 100 → 300に拡張（3倍）
-const WORLD_HEIGHT = 100; // 30 → 100に拡張（3倍以上）
+const WORLD_WIDTH = 600;  // 300 → 600に拡張（2倍）
+const WORLD_HEIGHT = 150; // 100 → 150に拡張（1.5倍）
 const GRAVITY = 0.5;
 const JUMP_FORCE = -12;
 const MOVE_SPEED = 4;
