@@ -408,11 +408,11 @@ class CraftingRecipes {
 
         // お楽しみ隠しレシピ
 
-        // ケーキ = 土 + 草 + 花
+        // ケーキ = 卵 + 砂 + 木材（小麦粉代わり）
         this.addRecipe({
             pattern: [
-                [ItemType.DIRT, ItemType.LEAVES, null],
-                [ItemType.GRASS, null, null],
+                [ItemType.EGG, ItemType.SAND, ItemType.EGG],
+                [ItemType.PLANKS, ItemType.PLANKS, ItemType.PLANKS],
                 [null, null, null]
             ],
             result: { item: 28, count: 1 }, // ケーキ
